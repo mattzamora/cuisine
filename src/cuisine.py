@@ -42,7 +42,7 @@ See also:
 """
 
 # TODO: Silence/redirect fabric, it's too verbose
-from __future__ import with_statement
+
 import base64, hashlib, os, re, string, tempfile, subprocess, types, threading, sys
 import tempfile, functools
 import fabric, fabric.api, fabric.operations, fabric.context_managers, fabric.state, fabric.version
@@ -61,7 +61,7 @@ except ImportError:
 if not (fabric.version.VERSION[0] > 1 or fabric.version.VERSION[1] >= 7):
 	sys.stderr.write("[!] Cuisine requires Fabric 1.7+")
 
-VERSION                 = "0.7.15"
+VERSION                 = "0.8.0"
 NOTHING                 = base64
 RE_SPACES               = re.compile("[\s\t]+")
 STRINGIFY_MAXSTRING     = 80
@@ -129,7 +129,7 @@ class Stats(object):
 
 def stringify( value ):
 	"""Turns the given value in a user-friendly string that can be displayed"""
-	if   type(value) in (str, unicode, bytes) and len(value) > STRINGIFY_MAXSTRING:
+	if   type(value) in (str, str, bytes) and len(value) > STRINGIFY_MAXSTRING:
 		return "{0}...".format(value[0:STRINGIFY_MAXSTRING])
 	elif type(value) in (list, tuple) and len(value) > 10:
 		return"[{0},...]".format(", ".join([stringify(_) for _ in value[0:STRINGIFY_MAXLISTSTRING]]))
@@ -147,7 +147,7 @@ def log_error( message ):
 def log_call( function, args, kwargs ):
 	"""Logs the given function call"""
 	function_name = function.__name__
-	a = ", ".join([stringify(_) for _ in args] + [str(k) + "=" + stringify(v) for k,v in kwargs.items()])
+	a = ", ".join([stringify(_) for _ in args] + [str(k) + "=" + stringify(v) for k,v in list(kwargs.items())])
 	logging.debug("{0}({1})".format(function_name, a))
 
 def logged(message=None):
@@ -908,7 +908,7 @@ def process_find(name, exact=False):
 	"""Returns the pids of processes with the given name. If exact is `False`
 	it will return the list of all processes that start with the given
 	`name`."""
-	is_string = isinstance(name,str) or isinstance(name,unicode)
+	is_string = isinstance(name,str) or isinstance(name,str)
 	# NOTE: ps -A seems to be the only way to not have the grep appearing
 	# as well
 	if is_string: processes = run("ps -A | grep {0} ; true".format(name))
@@ -1061,7 +1061,7 @@ def package_install_apt(package, update=False):
 
 def package_ensure_apt(package, update=False):
 	"""Ensure apt packages are installed"""
-	if isinstance(package, basestring):
+	if isinstance(package, str):
 		package = package.split()
 	res = {}
 	for p in package:
@@ -1078,7 +1078,7 @@ def package_ensure_apt(package, update=False):
 				package_update_apt(p)
 			res[p]=True
 	if len(res) == 1:
-		return res.values()[0]
+		return list(res.values())[0]
 	else:
 		return res
 
@@ -1207,7 +1207,7 @@ def package_install_pacman(package, update=False):
 
 def package_ensure_pacman(package, update=False):
 	"""Ensure apt packages are installed"""
-	if not isinstance(package, basestring):
+	if not isinstance(package, str):
 		package = " ".join(package)
 	status = run("pacman -Q %s ; true" % package)
 	if ('was not found' in status):
@@ -1255,7 +1255,7 @@ def package_install_emerge(package, update=False):
 	sudo("emerge -q %s" % (package))
 
 def package_ensure_emerge(package, update=False):
-	if not isinstance(package, basestring):
+	if not isinstance(package, str):
 		package = " ".join(package)
 	if update:
 		sudo("emerge -q --update --newuse %s" % package)
@@ -2208,7 +2208,7 @@ def _init():
 	# # If we don't find a host, we setup the local mode
 	# if not fabric.api.env.host_string: mode_local()
 	# We set the default options
-	for option, value in DEFAULT_OPTIONS.items(): eval("select_" + option)(value)
+	for option, value in list(DEFAULT_OPTIONS.items()): eval("select_" + option)(value)
 
 _init()
 

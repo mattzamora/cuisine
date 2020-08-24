@@ -6,8 +6,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-VERSION = eval(filter(lambda _:_.startswith("VERSION"),
-    file("src/cuisine.py").readlines())[0].split("=")[1])
+VERSION = eval([_ for _ in open("src/cuisine.py", "r").readlines() if _.startswith("VERSION")][0].split("=")[1])
 
 setup(
     name             = "cuisine",
